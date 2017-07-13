@@ -3,6 +3,7 @@ Scripts to interact with VitalQIP API
 =====================================
 
 Version 0.1, Mike Caesar, DXC Technology, July 2017
+Version 0.2, Mike Caesar, DXC Technology, July 2017
 
 These scripts were developed and tested on RHEL 6.9 and Python 2.6.6
 
@@ -46,9 +47,8 @@ Note: The password line can be omitted, in which case the scripts will prompt fo
       when they are run. If the scripts need to be run automatically then the password needs to
       be specified. Ensure that the config.py file is not world readable.
 
-Note: Version 0.1 of the scripts use a single domain for registering all hostnames. This will be
-      changed in a future version so that the domain specified in the config file is the default
-      domain used when a domain is not specified in the command line.
+Note: The domain specified in the config file is the default domain that will be used if a domain
+      is not specified in the command line. To override this use the -d <domain> option.
 
 =====================================
 Running the Scripts
@@ -62,28 +62,35 @@ addsubnet
             exist. There is currently no script for adding the parent network, it needs to 
             be done via the VitalQIP GUI.
 
-            Usage:   addSubnet -s <subnet> -m <netmask> -n <network>
-            Example: addSubnet -s 10.10.0.0 -m 255.255.0.0 -n 10.0.0.0
+            Usage:   addSubnet -s <subnet> -m <netmask> -n <network> [-d <domain>]
+            Example: addSubnet -s 10.10.0.0 -m 255.255.0.0 -n 10.0.0.0 -d example.domain.com
 
             The above example adds a new subnet 10.10.0.0/16 to the pre-existing network 10.0.0.0
+
+            If the domain is not specified then the default domain from the config file will be used.
+            The domain specified here will be the only valid domain for this subnet. If IP addresses
+            on this subnet need to belong to several different domains, then the additional domains
+            need to be added via the GUI.
 
 registerIP 
 
             Registers an IP address and hostname into the address management. The hostname will be 
-            registered against the domain specified in the config.py file.
+            registered against the domain specified in the config.py file, unless the -d option is
+            included.
 
             This script should be used when a specific IP Address is required.
 
-            Usage:   registerIp -i <ipaddr> -s <subnet> -h <hostname>
-            Example: registerIp -i 20.156.40.10 -s 20.156.0.0 -h server1
+            Usage:   registerIp -i <ipaddr> -s <subnet> -h <hostname> [-d <domain>]
+            Example: registerIp -i 20.156.40.10 -s 20.156.0.0 -h server1 -d example.domain.com
 
 registerNextFreeIp
 
             Registers the hostname against the next available IP address on the specified subnet. The
-            hostname will be registered against the domain specified in the config.py file.
+            hostname will be registered against the domain specified in the config.py file, unless
+            the -d option is included.
 
-            Usage:   registerNextFreeIp -s <subnet> -h <hostname>
-            Example: registerNextFreeIp -s 20.156.0.0 -h server1
+            Usage:   registerNextFreeIp -s <subnet> -h <hostname> [-d <domain>]
+            Example: registerNextFreeIp -s 20.156.0.0 -h server1 -d example.domain.com
 
             The IP address used will be reported in the output to screen as show in the example below.
 
