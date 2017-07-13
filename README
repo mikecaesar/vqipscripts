@@ -47,7 +47,7 @@ Note: The password line can be omitted, in which case the scripts will prompt fo
       when they are run. If the scripts need to be run automatically then the password needs to
       be specified. Ensure that the config.py file is not world readable.
 
-Note: The domain specified in the config file is the default domain that will be used of a domain
+Note: The domain specified in the config file is the default domain that will be used if a domain
       is not specified in the command line. To override this use the -d <domain> option.
 
 =====================================
