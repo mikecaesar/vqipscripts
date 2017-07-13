@@ -1,0 +1,59 @@
+#!/usr/bin/python
+#############################################################
+# Script to add a subnet to VitalQIP
+#
+# Version 0.1 - 12th July 2017 - Mike Caesar
+#############################################################
+import json
+import requests
+import apiutils
+import sys
+import getopt
+from config import *
+
+# Usage function - called when there is an issue with the options
+def usage():
+    print("Usage:   addSubnet -s <subnet> -m <netmask> -n <network>")
+    print("Example: addSubnet -s 10.10.0.0 -m 255.255.0.0 -n 10.0.0.0")
+
+# Read Options and arguments
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "s:m:n:")
+except getopt.GetoptError as err:
+    print str(err)
+    usage()
+    sys.exit(2)
+
+# Set all options
+for opt, arg in opts:
+    if opt == "-s":
+        subnet=arg
+    elif opt == "-n":
+        network=arg
+    elif opt == "-m":
+        netmask=arg
+    else:
+        print("Unknown option : %s", opt)
+        usage()
+        sys.exit(2)
+
+# Make sure that required options are set
+try:
+    subnet
+    network
+    netmask
+except:
+    print("Missing argument")
+    usage()
+    sys.exit(2)
+
+# Get a session token
+token = apiutils.get_token()
+
+# Add a subnet. Domain comes from the config file.
+url = apiurl + '/v4subnet/'
+headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
+data = '{"subnetAddress": "' + subnet + '","subnetMask": "' + netmask + '","networkAddress": "' + network + '","warningPercent": "90","warningType": "2","domains": {"name": ["' + domain + '"]}}'
+
+r = requests.post(url, headers=headers, verify=False, data=data)
+apiutils.chkstatus(r.status_code,r.content)
