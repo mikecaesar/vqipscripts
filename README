@@ -3,6 +3,7 @@ Scripts to interact with VitalQIP API
 =====================================
 
 Version 0.1, Mike Caesar, DXC Technology, July 2017
+Version 0.2, Mike Caesar, DXC Technology, July 2017
 
 These scripts were developed and tested on RHEL 6.9 and Python 2.6.6
 
