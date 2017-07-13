@@ -1,0 +1,54 @@
+#!/usr/bin/python
+#############################################################
+# Script to delete an IP Address from VitalQIP
+#
+# Version 0.1 - 12th July 2017 - Mike Caesar
+#############################################################
+
+import json
+import requests
+import apiutils
+import getopt
+import sys
+from config import *
+
+# Usage Function - called when there is an issue with the options
+def usage():
+    print("Usage:   deleteIp -i <ipaddr>")
+    print("Example: deleteIp -i 20.156.40.10")
+
+# Read Options and arguments
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "i:")
+except getopt.GetoptError as err:
+    print str(err)
+    usage()
+    sys.exit(2)
+
+# Set all options
+for opt, arg in opts:
+    if opt == "-i":
+        ipaddress=arg
+    else:
+        print("Unknown option : %s", opt)
+        usage()
+        sys.exit(2)
+
+# Make sure that required options are set
+try:
+    ipaddress
+except:
+    print("Missing argument")
+    usage()
+    sys.exit(2)
+
+
+# Get a session token
+token = apiutils.get_token()
+
+# Delete the IPaddr from VitalQIP
+url = apiurl + '/v4address/' + ipaddress + '/'
+headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
+
+r = requests.delete(url, headers=headers, verify=False)
+apiutils.chkstatus(r.status_code,r.content)

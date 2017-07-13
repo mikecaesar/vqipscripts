@@ -1,0 +1,60 @@
+#!/usr/bin/python
+#############################################################
+# Script to registe and IP in VitalQIP
+#
+# Version 0.1 - 12th July 2017 - Mike Caesar
+#############################################################
+import json
+import requests
+import apiutils
+import sys
+import getopt
+from config import *
+
+# Usage Function - called when there is an issue with the options
+def usage():
+    print("Usage:   registerIp -i <ipaddr> -s <subnet> -h <hostname>")
+    print("Example: registerIp -i 20.156.40.10 -s 20.156.0.0 -h server1")
+
+# Read Options and arguments
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "s:i:h:")
+except getopt.GetoptError as err:
+    print str(err)
+    usage()
+    sys.exit(2)
+
+# Set all options
+for opt, arg in opts:
+    if opt == "-s":
+        subnet=arg
+    elif opt == "-i":
+        ipaddress=arg
+    elif opt == "-h":
+        hostname=arg
+    else:
+        print("Unknown option : %s", opt)
+        usage()
+        sys.exit(2)
+
+# Make sure that required options are set
+try:
+    subnet
+    hostname
+    ipaddress
+except:
+    print("Missing argument")
+    usage()
+    sys.exit(2)
+
+
+# Get a session token
+token = apiutils.get_token()
+
+# Add the IPaddr and hostname to the subnet. Domain comes from the config file.
+url = apiurl + '/v4address/'
+headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
+data = '{"domainName": "' + domain + '","objectAddr": "' + ipaddress + '","objectClass": "Server","objectName": "' + hostname + '","subnetAddr": "' + subnet + '"}'
+
+r = requests.post(url, headers=headers, verify=False, data=data)
+apiutils.chkstatus(r.status_code,r.content)

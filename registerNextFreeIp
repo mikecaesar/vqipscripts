@@ -1,0 +1,79 @@
+#!/usr/bin/python
+#############################################################
+# Script to register the next free IP address in a subnet in VitalQIP
+#
+# Version 0.1 - 12th July 2017 - Mike Caesar
+#############################################################
+import json
+import requests
+import apiutils
+import sys
+import getopt
+from config import *
+
+# Usage Function - called when there is an issue with the options
+def usage():
+    print("Usage:   registerNextFreeIp -s <subnet> -h <hostname>")
+    print("Example: registerNextFreeIp -s 20.156.0.0 -h server1")
+
+# Read Options and arguments
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "s:h:")
+except getopt.GetoptError as err:
+    print str(err)
+    usage()
+    sys.exit(2)
+
+# Set all options
+for opt, arg in opts:
+    if opt == "-s":
+        subnet=arg
+    elif opt == "-h":
+        hostname=arg
+    else:
+        print("Unknown option : %s", opt)
+        usage()
+        sys.exit(2)
+
+# Make sure that required options are set
+try:
+    subnet
+    hostname
+except:
+    print("Missing argument")
+    usage()
+    sys.exit(2)
+
+
+
+# Get a session token
+token = apiutils.get_token()
+
+# Select the next free IP in the subnet
+print('Selecting a free IP address')
+url = apiurl + '/selectedv4address/' + subnet + '/'
+headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
+
+r = requests.put(url, headers=headers, verify=False)
+apiutils.chkstatus(r.status_code,r.content)
+
+answer=r.json()
+ipaddress=answer[u'objectAddr']
+print('Registering %s using next free IP in the subnet: %s' %(hostname,ipaddress))
+
+# Add the IPaddr and hostname to the subnet. DNS domain comes from the config file
+url = apiurl + '/v4address/'
+headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
+data = '{"domainName": "' + domain + '","objectAddr": "' + ipaddress + '","objectClass": "Server","objectName": "' + hostname + '","subnetAddr": "' + subnet + '"}'
+
+r = requests.put(url, headers=headers, verify=False, data=data)
+# If the addition of the IP failed then release the IP that was seletectd
+try:
+    apiutils.chkstatus(r.status_code,r.content)
+except:
+    print('Cleanup - Releasing selected IP Address : %s' %(ipaddress))
+    # Delete the IPaddr from VitalQIP
+    url = apiurl + '/v4address/' + ipaddress + '/'
+    r = requests.delete(url, headers=headers, verify=False)
+    sys.exit(1)
+
