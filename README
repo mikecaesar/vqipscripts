@@ -1,0 +1,112 @@
+=====================================
+Scripts to interact with VitalQIP API
+=====================================
+
+Version 0.1, Mike Caesar, DXC Technology, July 2017
+
+These scripts were developed and tested on RHEL 6.9 and Python 2.6.6
+
+=====================================
+Pre-Requisites
+=====================================
+
+These python scripts import the following modules...
+
+  import getopt
+  import getpass
+  import json
+  import os
+  import requests
+  import sys
+
+You will need to ensure that these modules are installed on the machine
+that is used to run the scripts. Missing modules can generally be installed
+from the yum repositories as in the following example.
+
+# yum -y install python-requests python-ipaddr
+
+
+=====================================
+Configuration
+=====================================
+
+Before running any scripts edit the config.py file and specify the following...
+
+esmhost = 'vqiphostname'            # The hostname or IP of the ESM for VitalQIP. This needs to resolve 
+esmport = '8080'                    # Port used to communicate with VitalQIP ESM. Default is 8080
+org = 'VitalQIP%20Organization'     # The Organization within VitalQIP. Spaces represented as %20
+domain = 'example.dxc.com'          # The domain that hostnames will be registered against.
+adminpass = 'qipman'                # Password for the qipman admin user for VitalQIP.
+
+
+Note: The organization is displayed in the top menu bar of the VitalQIP GUI.
+      Default organization is "VitalQIP Organization"
+
+Note: The password line can be omitted, in which case the scripts will prompt for the password
+      when they are run. If the scripts need to be run automatically then the password needs to
+      be specified. Ensure that the config.py file is not world readable.
+
+Note: Version 0.1 of the scripts use a single domain for registering all hostnames. This will be
+      changed in a future version so that the domain specified in the config file is the default
+      domain used when a domain is not specified in the command line.
+
+=====================================
+Running the Scripts
+=====================================
+
+Running any of the scripts without arguments displays usage and example.
+
+addsubnet 
+
+            Adds a new subnet into the address management. The parent network needs to already
+            exist. There is currently no script for adding the parent network, it needs to 
+            be done via the VitalQIP GUI.
+
+            Usage:   addSubnet -s <subnet> -m <netmask> -n <network>
+            Example: addSubnet -s 10.10.0.0 -m 255.255.0.0 -n 10.0.0.0
+
+            The above example adds a new subnet 10.10.0.0/16 to the pre-existing network 10.0.0.0
+
+registerIP 
+
+            Registers an IP address and hostname into the address management. The hostname will be 
+            registered against the domain specified in the config.py file.
+
+            This script should be used when a specific IP Address is required.
+
+            Usage:   registerIp -i <ipaddr> -s <subnet> -h <hostname>
+            Example: registerIp -i 20.156.40.10 -s 20.156.0.0 -h server1
+
+registerNextFreeIp
+
+            Registers the hostname against the next available IP address on the specified subnet. The
+            hostname will be registered against the domain specified in the config.py file.
+
+            Usage:   registerNextFreeIp -s <subnet> -h <hostname>
+            Example: registerNextFreeIp -s 20.156.0.0 -h server1
+
+            The IP address used will be reported in the output to screen as show in the example below.
+
+            $ ./registerNextFreeIp -s 10.10.0.0 -h webserver1
+            Selecting a free IP address
+            Success
+            Registering webserver1 using next free IP in the subnet: 10.10.0.9
+            Success
+
+deleteIp
+
+            Delete an IP address from the address management.
+
+            Usage:   deleteIp -i <ipaddr>
+            Example: deleteIp -i 20.156.40.10
+
+ 
+=====================================
+Return Codes
+=====================================
+
+A return code of 1 indicates some failure reported back from the VitalQIP API. The reported
+error message is displayed on screen.
+
+A return code of 2 indicates some error with the arguments and options passed to the script
+for example a missing argument or invalid option.
