@@ -3,6 +3,8 @@
 # Script to register the next free IP address in a subnet in VitalQIP
 #
 # Version 0.1 - 12th July 2017 - Mike Caesar
+# Version 0.2 - 14th July 2017 - Mike Caesar
+#               Added -d option
 #############################################################
 import json
 import requests
@@ -13,12 +15,12 @@ from config import *
 
 # Usage Function - called when there is an issue with the options
 def usage():
-    print("Usage:   registerNextFreeIp -s <subnet> -h <hostname>")
-    print("Example: registerNextFreeIp -s 20.156.0.0 -h server1")
+    print("Usage:   registerNextFreeIp -s <subnet> -h <hostname> [-d <domain>]")
+    print("Example: registerNextFreeIp -s 20.156.0.0 -h server1 -d example.domain.com")
 
 # Read Options and arguments
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "s:h:")
+    opts, args = getopt.getopt(sys.argv[1:], "s:h:d:")
 except getopt.GetoptError as err:
     print str(err)
     usage()
@@ -30,6 +32,8 @@ for opt, arg in opts:
         subnet=arg
     elif opt == "-h":
         hostname=arg
+    elif opt == "-d":
+        domain=arg
     else:
         print("Unknown option : %s", opt)
         usage()
