@@ -1,0 +1,65 @@
+#!/usr/bin/python
+import sys
+import os
+import re
+import ipaddr
+import requests
+import csv
+import getopt
+import apiutils
+from config import *
+
+# Usage Function - called when there is an issue with the options
+def usage():
+    print("Usage:   registerIpFile -f <filename> [-d <domain>]")
+    print("Example: registerIpFile -f filename.csv -d example.domain.com")
+
+# Read Options and arguments
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "f:d:")
+except getopt.GetoptError as err:
+    print str(err)
+    usage()
+    sys.exit(2)
+
+# Set all options
+for opt, arg in opts:
+    if opt == "-f":
+        filename=arg
+    elif opt == "-d":
+        domain=arg
+    else:
+        print("Unknown option : %s", opt)
+        usage()
+        sys.exit(2)
+
+# Make sure that required options are set
+try:
+    filename
+except:
+    print("Missing argument")
+    usage()
+    sys.exit(2)
+
+# Get a session token 
+token = apiutils.get_token(60)
+
+with open(filename, 'rb') as csvfile:
+    csvreader = csv.reader(csvfile)
+    for row in csvreader:
+        hostname = row[0]
+        hostname = re.split(r'\.', hostname)
+        hostname = hostname[0]
+        ipaddress = row[1]
+        netmask = row[2]
+        ip_mask = ipaddress + "/" + netmask
+        ip_obj = ipaddr.IPv4Network(ip_mask)
+        subnet = str(ip_obj.network)
+
+        # Add the IPaddr and hostname to the subnet. Domain comes from the config file.
+	print('Registering - Hostname = %s IP = %s netmask = %s' %(hostname,ipaddress,netmask))
+        url = apiurl + '/v4address/'
+        headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
+        data = '{"domainName": "' + domain + '","objectAddr": "' + ipaddress + '","objectClass": "Server","objectName": "' + hostname + '","subnetAddr": "' + subnet + '"}'
+        r = requests.post(url, headers=headers, verify=False, data=data)
+        apiutils.chkstatus(r.status_code,r.content,fail='no')
