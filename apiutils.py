@@ -23,10 +23,11 @@ def get_token(exp=20):
     r = requests.post(loginurl, headers=headers, verify=False, data=data)
     return r.headers.get('authentication')
 
-def chkstatus(code,content):
+def chkstatus(code,content,fail='yes'):
     if (code == 200 or code == 201):
         print('Success')
     else:
         print('Failed:')
 	print(content)
-        sys.exit(1)
+        if fail == 'yes':
+            sys.exit(1)
