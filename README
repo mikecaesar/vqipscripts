@@ -107,6 +107,29 @@ deleteIp
             Usage:   deleteIp -i <ipaddr>
             Example: deleteIp -i 20.156.40.10
 
+registerIpFile
+
+            Register IP addresses based on the contents of a CSV file.
+
+            Usage:   registerIpFile -f <filename> [-d <domain>]
+            Example: registerIpFile -f filename.csv -d example.domain.com
+
+            The file should be in the format:
+
+            hostname,ipaddress,netmask
+
+            e.g.
+
+            serverabc1.example.domain.com,10.40.0.5,255.255.0.0
+            serverabc2,10.40.0.7,255.255.0.0
+            serverabc3,10.40.0.8,255.255.0.0
+            serverabc4,10.40.0.15,255.255.0.0
+            serverabc5,10.40.0.195,255.255.0.0
+
+
+            The hostname can be fully qualified, but everything after the first dot will be ignored and the
+            domain used will be the default domain from the config file, unless the -d option is included.
+
  
 =====================================
 Return Codes

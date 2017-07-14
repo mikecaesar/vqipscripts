@@ -1,4 +1,12 @@
 #!/usr/bin/python
+######################################################################
+#
+# Script to update VitalQIP based on .csv file in the format...
+# hostname,ipaddress,netmask
+#
+# Version 0.1, Mike Caesar, July 2017
+#
+#######################################################################
 import sys
 import os
 import re
