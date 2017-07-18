@@ -38,6 +38,9 @@ esmport = '8080'                    # Port used to communicate with VitalQIP ESM
 org = 'VitalQIP%20Organization'     # The Organization within VitalQIP. Spaces represented as %20
 domain = 'example.dxc.com'          # The domain that hostnames will be registered against.
 adminpass = 'qipman'                # Password for the qipman admin user for VitalQIP.
+ignore_subnets = ''                 # Comma separated list of subnets to ignore. Used by registerIpFile
+                                    # This line needs to exist, even if the list is empty
+                                    #  - further details below
 
 
 Note: The organization is displayed in the top menu bar of the VitalQIP GUI.
@@ -127,9 +130,21 @@ registerIpFile
             serverabc5,10.40.0.195,255.255.0.0
 
 
-            The hostname can be fully qualified, but everything after the first dot will be ignored and the
-            domain used will be the default domain from the config file, unless the -d option is included.
+            The hostname can be fully qualified. If it is not fully qualified then the domain used will be
+            the default domain from the config file, unless the -d option is specified.  
 
+            If the csv is likely to contain entries that need to be ignored then these can be specified by
+            including the subnets to ignore in the config.py file. This might be used for example if some
+            hosts have dual NICs and only one of the NICs needs to be registered. 
+
+            For example, if hosts have a backup NIC on 192.168.20.0/24 and we don't want to register these
+            in VitalQIP, then we could add the following line in the config.py file...
+
+            ignore_subnets = '192.168.20.0'
+
+            Multiple subnets can be specified as follows...
+
+            ignore_subnets = '192.168.20.0,192.168.30.0'
  
 =====================================
 Return Codes

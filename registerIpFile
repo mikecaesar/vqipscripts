@@ -5,11 +5,13 @@
 # hostname,ipaddress,netmask
 #
 # Version 0.1, Mike Caesar, July 2017
+# Version 0.2, Mike Caesar, July 2017
+#              Added ignore_subnets option
+#              Allow for hostname in the csv to be fully qualified
 #
 #######################################################################
 import sys
 import os
-import re
 import ipaddr
 import requests
 import csv
@@ -49,25 +51,36 @@ except:
     usage()
     sys.exit(2)
 
-# Get a session token 
-token = apiutils.get_token(60)
+# Get a session token - 300 seconds expiration to allow time for processing csv file
+token = apiutils.get_token(300)
 
 with open(filename, 'rb') as csvfile:
     csvreader = csv.reader(csvfile)
     for row in csvreader:
-        hostname = row[0]
-        hostname = re.split(r'\.', hostname)
-        hostname = hostname[0]
+        # Set hostname as everything before the first . in fqdn
+        fqdn = row[0]
+        fqdn = fqdn.split('.', 1)
+        hostname = fqdn[0]
         ipaddress = row[1]
         netmask = row[2]
         ip_mask = ipaddress + "/" + netmask
         ip_obj = ipaddr.IPv4Network(ip_mask)
         subnet = str(ip_obj.network)
+        # If the subnet is in the list to ignore, continue with the next row
+        if subnet in ignore_subnets:
+            continue
+        # Set the domain to use for this row. If the hostname in this row of the csv
+        # was fully qualified use that. Otherwise use the domain specified in the 
+        # config file, or on the command line
+        if len(fqdn)>1:
+            row_domain=fqdn[1]
+        else:
+            row_domain=domain
 
-        # Add the IPaddr and hostname to the subnet. Domain comes from the config file.
-	print('Registering - Hostname = %s IP = %s netmask = %s' %(hostname,ipaddress,netmask))
+        # Add the IPaddr and hostname to the subnet. 
+	print('Registering - Hostname = %s IP = %s netmask = %s Domain = %s' %(hostname,ipaddress,netmask,row_domain))
         url = apiurl + '/v4address/'
         headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
-        data = '{"domainName": "' + domain + '","objectAddr": "' + ipaddress + '","objectClass": "Server","objectName": "' + hostname + '","subnetAddr": "' + subnet + '"}'
+        data = '{"domainName": "' + row_domain + '","objectAddr": "' + ipaddress + '","objectClass": "Server","objectName": "' + hostname + '","subnetAddr": "' + subnet + '"}'
         r = requests.post(url, headers=headers, verify=False, data=data)
         apiutils.chkstatus(r.status_code,r.content,fail='no')
