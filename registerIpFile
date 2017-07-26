@@ -8,6 +8,8 @@
 # Version 0.2, Mike Caesar, July 2017
 #              Added ignore_subnets option
 #              Allow for hostname in the csv to be fully qualified
+# Version 0.3 - 26th July 2017 - Mike Caesar
+#               Added Logging and -v option
 #
 #######################################################################
 import sys
@@ -17,31 +19,38 @@ import requests
 import csv
 import getopt
 import apiutils
+import logging
 from config import *
 
 # Usage Function - called when there is an issue with the options
 def usage():
-    print("Usage:   registerIpFile -f <filename> [-d <domain>]")
+    print("Usage:   registerIpFile -f <filename> [-d <domain>] [-v]")
     print("Example: registerIpFile -f filename.csv -d example.domain.com")
 
 # Read Options and arguments
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "f:d:")
+    opts, args = getopt.getopt(sys.argv[1:], "f:d:v")
 except getopt.GetoptError as err:
     print str(err)
     usage()
     sys.exit(2)
 
 # Set all options
+verbose=0
 for opt, arg in opts:
     if opt == "-f":
         filename=arg
     elif opt == "-d":
         domain=arg
+    elif opt == "-v":
+        verbose=1
     else:
         print("Unknown option : %s", opt)
         usage()
         sys.exit(2)
+
+# Configure logging destination
+apiutils.setlogging(verbose)
 
 # Make sure that required options are set
 try:
@@ -82,5 +91,9 @@ with open(filename, 'rb') as csvfile:
         url = apiurl + '/v4address/'
         headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
         data = '{"domainName": "' + row_domain + '","objectAddr": "' + ipaddress + '","objectClass": "Server","objectName": "' + hostname + '","subnetAddr": "' + subnet + '"}'
+
+        logging.info('URL : %s' %(url))
+        logging.info('Headers : %s' %(headers))
+        logging.info('Data : %s' %(data))
         r = requests.post(url, headers=headers, verify=False, data=data)
         apiutils.chkstatus(r.status_code,r.content,fail='no')

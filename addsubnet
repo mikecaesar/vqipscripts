@@ -5,28 +5,33 @@
 # Version 0.1 - 12th July 2017 - Mike Caesar
 # Version 0.2 - 14th July 2017 - Mike Caesar
 #               Added -d option
+# Version 0.3 - 26th July 2017 - Mike Caesar
+#               Added Logging and -v option
 #############################################################
 import json
 import requests
 import apiutils
 import sys
 import getopt
+import logging
 from config import *
+
 
 # Usage function - called when there is an issue with the options
 def usage():
-    print("Usage:   addSubnet -s <subnet> -m <netmask> -n <network> [-d <domain>]")
+    print("Usage:   addSubnet -s <subnet> -m <netmask> -n <network> [-d <domain>] [-v]")
     print("Example: addSubnet -s 10.10.0.0 -m 255.255.0.0 -n 10.0.0.0 -d example.domain.com")
 
 # Read Options and arguments
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "s:m:n:d:")
+    opts, args = getopt.getopt(sys.argv[1:], "s:m:n:d:v")
 except getopt.GetoptError as err:
     print str(err)
     usage()
     sys.exit(2)
 
 # Set all options
+verbose=0
 for opt, arg in opts:
     if opt == "-s":
         subnet=arg
@@ -36,10 +41,15 @@ for opt, arg in opts:
         netmask=arg
     elif opt == "-d":
         domain=arg
+    elif opt == "-v":
+        verbose=1
     else:
         print("Unknown option : %s", opt)
         usage()
         sys.exit(2)
+
+# Configure logging destination
+apiutils.setlogging(verbose)
 
 # Make sure that required options are set
 try:
@@ -59,5 +69,8 @@ url = apiurl + '/v4subnet/'
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
 data = '{"subnetAddress": "' + subnet + '","subnetMask": "' + netmask + '","networkAddress": "' + network + '","warningPercent": "90","warningType": "2","domains": {"name": ["' + domain + '"]}}'
 
+logging.info('URL : %s' %(url))
+logging.info('Headers : %s' %(headers))
+logging.info('Data : %s' %(data))
 r = requests.post(url, headers=headers, verify=False, data=data)
 apiutils.chkstatus(r.status_code,r.content)

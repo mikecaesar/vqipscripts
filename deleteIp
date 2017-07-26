@@ -3,6 +3,8 @@
 # Script to delete an IP Address from VitalQIP
 #
 # Version 0.1 - 12th July 2017 - Mike Caesar
+# Version 0.3 - 26th July 2017 - Mike Caesar
+#               Added Logging and -v option
 #############################################################
 
 import json
@@ -10,29 +12,36 @@ import requests
 import apiutils
 import getopt
 import sys
+import logging
 from config import *
 
 # Usage Function - called when there is an issue with the options
 def usage():
-    print("Usage:   deleteIp -i <ipaddr>")
+    print("Usage:   deleteIp -i <ipaddr> [-v]")
     print("Example: deleteIp -i 20.156.40.10")
 
 # Read Options and arguments
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "i:")
+    opts, args = getopt.getopt(sys.argv[1:], "i:v")
 except getopt.GetoptError as err:
     print str(err)
     usage()
     sys.exit(2)
 
 # Set all options
+verbose=0
 for opt, arg in opts:
     if opt == "-i":
         ipaddress=arg
+    elif opt == "-v":
+        verbose=1
     else:
         print("Unknown option : %s", opt)
         usage()
         sys.exit(2)
+
+# Configure logging destination
+apiutils.setlogging(verbose)
 
 # Make sure that required options are set
 try:
@@ -50,5 +59,7 @@ token = apiutils.get_token()
 url = apiurl + '/v4address/' + ipaddress + '/'
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
 
+logging.info('URL : %s' %(url))
+logging.info('Headers : %s' %(headers))
 r = requests.delete(url, headers=headers, verify=False)
 apiutils.chkstatus(r.status_code,r.content)
