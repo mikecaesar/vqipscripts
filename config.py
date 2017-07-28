@@ -1,7 +1,8 @@
-esmhost = 'vqip'
+esmhost = 'ip-10-0-1-189'
+#esmhost = 'vqip'
 esmport = '8080'
-org = 'VitalQIP%20Organization'
-domain = 'example.domain.com'
+org = 'Platform%20DXC'
+domain = 'ec2.internal'
 adminpass = 'qipman'
 # Following option is used only by registerIpFile.
 # This should be a comma separated list of any subnets that might be in
