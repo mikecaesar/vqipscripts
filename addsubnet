@@ -9,7 +9,6 @@
 #               Added Logging and -v option
 # Version 0.4 - 15th Aug 2017 - Mike Caesar
 #               Updated logging to include username
-# Add comment
 #############################################################
 import json
 import requests
