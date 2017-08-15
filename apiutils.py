@@ -4,6 +4,8 @@
 # Version 0.1 - 12th July 2017 - Mike Caesar
 # Version 0.3 - 26th July 2017 - Mike Caesar
 #               Added Logging and -v option
+# Version 0.4 - 15th Aug 2017 - Mike Caesar
+#               Updated logging to include username
 #############################################
 
 #!/usr/bin/python
@@ -14,6 +16,17 @@ import os
 import sys
 import logging
 from config import *
+
+# Configure Logging
+nameofuser=getpass.getuser()
+extra = {'username':nameofuser}
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler('/var/log/vqipscripts.log')
+formatter = logging.Formatter('%(levelname)s:%(asctime)s:%(filename)s:%(username)s - %(message)s')
+handler.setFormatter(formatter)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(handler)
+logger = logging.LoggerAdapter(logger, extra)
 
 # Get a token. The argument defines the expiry time in seconds. Defaults to 20.
 def get_token(exp=20):
@@ -34,23 +47,16 @@ def get_token(exp=20):
         return r.headers.get('authentication')
     except requests.ConnectionError as errmessage:
         print(errmessage)
-        logging.error('Token Request Failed with : %s' %(errmessage))
+        logger.error('Token Request Failed with : %s' %(errmessage))
         sys.exit(1)
 
 def chkstatus(code,content,fail='yes'):
     if (code == 200 or code == 201):
         print('Success')
-        logging.info('Success')
     else:
         print('Failed:')
 	print(content)
-        logging.error(content)
+        logger.error(content)
         if fail == 'yes':
             sys.exit(1)
-
-def setlogging(verbose):
-    if verbose:
-        logging.basicConfig(format='%(levelname)s:%(asctime)s:%(filename)s  %(message)s',filename='/var/log/vqipscripts.log',level=logging.DEBUG)
-    else:
-        logging.basicConfig(format='%(levelname)s:%(asctime)s:%(filename)s  %(message)s',filename='/var/log/vqipscripts.log',level=logging.WARNING)
 

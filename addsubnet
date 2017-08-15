@@ -7,6 +7,8 @@
 #               Added -d option
 # Version 0.3 - 26th July 2017 - Mike Caesar
 #               Added Logging and -v option
+# Version 0.4 - 15th Aug 2017 - Mike Caesar
+#               Updated logging to include username
 #############################################################
 import json
 import requests
@@ -14,8 +16,8 @@ import apiutils
 import sys
 import getopt
 import logging
+import getpass
 from config import *
-
 
 # Usage function - called when there is an issue with the options
 def usage():
@@ -48,8 +50,20 @@ for opt, arg in opts:
         usage()
         sys.exit(2)
 
-# Configure logging destination
-apiutils.setlogging(verbose)
+# Configure logging 
+nameofuser=getpass.getuser()
+extra = {'username':nameofuser}
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler('/var/log/vqipscripts.log')
+formatter = logging.Formatter('%(levelname)s:%(asctime)s:%(filename)s:%(username)s - %(message)s')
+handler.setFormatter(formatter)
+if verbose:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.WARNING)
+logger.addHandler(handler)
+logger = logging.LoggerAdapter(logger, extra)
+
 
 # Make sure that required options are set
 try:
@@ -69,8 +83,8 @@ url = apiurl + '/v4subnet/'
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
 data = '{"subnetAddress": "' + subnet + '","subnetMask": "' + netmask + '","networkAddress": "' + network + '","warningPercent": "90","warningType": "2","domains": {"name": ["' + domain + '"]}}'
 
-logging.info('URL : %s' %(url))
-logging.info('Headers : %s' %(headers))
-logging.info('Data : %s' %(data))
+logger.info('URL : %s' %(url))
+logger.info('Headers : %s' %(headers))
+logger.info('Data : %s' %(data))
 r = requests.post(url, headers=headers, verify=False, data=data)
 apiutils.chkstatus(r.status_code,r.content)

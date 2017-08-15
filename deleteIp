@@ -5,6 +5,8 @@
 # Version 0.1 - 12th July 2017 - Mike Caesar
 # Version 0.3 - 26th July 2017 - Mike Caesar
 #               Added Logging and -v option
+# Version 0.4 - 15th Aug 2017 - Mike Caesar
+#               Updated logging to include username
 #############################################################
 
 import json
@@ -13,6 +15,7 @@ import apiutils
 import getopt
 import sys
 import logging
+import getpass
 from config import *
 
 # Usage Function - called when there is an issue with the options
@@ -40,8 +43,19 @@ for opt, arg in opts:
         usage()
         sys.exit(2)
 
-# Configure logging destination
-apiutils.setlogging(verbose)
+# Configure logging
+nameofuser=getpass.getuser()
+extra = {'username':nameofuser}
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler('/var/log/vqipscripts.log')
+formatter = logging.Formatter('%(levelname)s:%(asctime)s:%(filename)s:%(username)s - %(message)s')
+handler.setFormatter(formatter)
+if verbose:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.WARNING)
+logger.addHandler(handler)
+logger = logging.LoggerAdapter(logger, extra)
 
 # Make sure that required options are set
 try:
@@ -59,7 +73,7 @@ token = apiutils.get_token()
 url = apiurl + '/v4address/' + ipaddress + '/'
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authentication': 'Token %s' %token}
 
-logging.info('URL : %s' %(url))
-logging.info('Headers : %s' %(headers))
+logger.info('URL : %s' %(url))
+logger.info('Headers : %s' %(headers))
 r = requests.delete(url, headers=headers, verify=False)
 apiutils.chkstatus(r.status_code,r.content)
