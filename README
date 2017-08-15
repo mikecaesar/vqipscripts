@@ -23,6 +23,8 @@ These python scripts import the following modules...
   import requests
   import sys
   import logging
+  import csv
+  import ipaddr
 
 You will need to ensure that these modules are installed on the machine
 that is used to run the scripts. Missing modules can generally be installed
